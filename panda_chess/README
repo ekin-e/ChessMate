@@ -1,1 +1,3 @@
+Download Stockfish from here and edit the path in game_controller.py line 7 
 
+https://stockfishchess.org/download/
