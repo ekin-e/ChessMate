@@ -1,0 +1,217 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="panda_pick_and_place">
+    <!--A global light source-->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!--A ground plane-->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!--A chess board-->
+    <include>
+      <uri>model://checkerboard_plane</uri>
+      <pose>0.5 0.0 0.011 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>model://chess_box</uri>
+      <pose>0.5 0.0 0.0 0 -0 0</pose>
+    </include>
+    
+    <!-- Chess pieces -->
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_0</name>
+    <pose>0.325 -0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_1</name>
+    <pose>0.325 -0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_2</name>
+    <pose>0.325 -0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_3</name>
+    <pose>0.325 -0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_4</name>
+    <pose>0.325 0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_5</name>
+    <pose>0.325 0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_6</name>
+    <pose>0.325 0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_7</name>
+    <pose>0.325 0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_8</name>
+    <pose>0.375 -0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_9</name>
+    <pose>0.375 -0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_10</name>
+    <pose>0.375 -0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_11</name>
+    <pose>0.375 -0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_12</name>
+    <pose>0.375 0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_13</name>
+    <pose>0.375 0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_14</name>
+    <pose>0.375 0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_15</name>
+    <pose>0.375 0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_48</name>
+    <pose>0.625 -0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_49</name>
+    <pose>0.625 -0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_50</name>
+    <pose>0.625 -0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_51</name>
+    <pose>0.625 -0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_52</name>
+    <pose>0.625 0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_53</name>
+    <pose>0.625 0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_54</name>
+    <pose>0.625 0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_55</name>
+    <pose>0.625 0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_56</name>
+    <pose>0.675 -0.175 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_57</name>
+    <pose>0.675 -0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_58</name>
+    <pose>0.675 -0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_59</name>
+    <pose>0.675 -0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_60</name>
+    <pose>0.675 0.025 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_61</name>
+    <pose>0.675 0.075 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_62</name>
+    <pose>0.675 0.125 0.021 0 0 0</pose>
+</include>
+
+<include>
+    <uri>model://chess_piece</uri>
+    <name>chess_piece_63</name>
+    <pose>0.675 0.175 0.021 0 0 0</pose>
+</include>
+
+
+  </world>
+</sdf>
