@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>panda_chess</name>
+  <version>0.0.0</version>
+  <description>The panda_chess package</description>
+  <maintainer email="ekin@todo.todo">ekin</maintainer>
+  <license>TODO</license>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>franka_ros</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>franka_ros</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>franka_ros</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+
+  <export>
+
+  </export>
+</package>
