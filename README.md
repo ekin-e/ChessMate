@@ -18,6 +18,12 @@ roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka
 
 - Sending 2 moves for the robot for castling and capturing pieces not implemented yet because robot can't make 1 pick and place move correctly
 
+
+# franka_gazebo
+
+Replace the original franka_gazebo with the one provided here. (Added models for chessboard, pieces etc)
+
+
 # packages needed
 - libfranka
 - franka_ros
