@@ -18,6 +18,15 @@ from spatialmath import SE3
 class MovePanda:
     def __init__(self, piece_height, piece_width):
         self.robot = rtb.models.Panda()
+        # Define the z-offset value
+        z_offset = 0.32
+        # Get the transformation matrix of the base frame
+        T_base = np.array(self.robot.base)
+        # Apply the z-offset to the translation component of the transformation matrix
+        T_base[2, 3] += z_offset
+        # Update the transformation matrix of the base frame
+        self.robot.base = T_base
+
         self.start_pos = None
         self.goal_pos = None
         self.piece_height = piece_height
@@ -26,7 +35,6 @@ class MovePanda:
         self.client_gripper = None
         self.init_pose = (-0.0001460298397581994, -0.7856265484913365, 3.848215033386282e-05, -2.3559752525418283, 1.4089042781328942e-05, 1.5717536590604224, 0.7853856431923942)
         self.current_pose = None
-        self.ik_offest_z = 0.32
 
 
     def set_pos(self, pos):
@@ -45,29 +53,22 @@ class MovePanda:
         pose = pose_msg.actual.positions
         #rospy.loginfo("Received joint pose: " + str(pose))
 
-        # extra forward + inverse kinematic stuff to add the offset to z (experimental still not working)
-        ck = np.array(self.robot.fkine(pose))
-        # Extract the (x, y, z) coordinates
-        x = ck[0, 3]
-        y = ck[1, 3]
-        z = ck[2, 3] - self.ik_offest_z
-
-        Tep = SE3.Trans(x, y, z)
-        sol = self.robot.ik_LM(Tep)
-        self.current_pose = tuple(sol[0])
-        self.robot.q = sol[0]
+        self.current_pose = pose
+        self.robot.q = pose
+        Te = self.robot.fkine(self.robot.q)  # forward kinematics
+        print(Te)
 
 
     def calculate_IK_pose(self, x, y, z):
+        # Define the desired orientation as a rotation matrix
+        R = SE3.Ry(180, unit='deg')
         # translate to this position
-        z -= self.ik_offest_z
-        Tep = SE3.Trans(x, y, z)
+        Tep = SE3.Tx(x) @ SE3.Ty(y) @ SE3.Tz(z) @ R
         # solve IK
         sol = self.robot.ik_LM(Tep)
         # convert sol to franka_ros joint pose
         joint_positions = sol[0]
-        # check FK
-        print(self.robot.fkine(joint_positions))
+
         pose = joint_positions.copy()
         return pose
 
@@ -148,7 +149,7 @@ class MovePanda:
         # Creates a goal to send to the action server.
         print("creating goal")
         rospy.sleep(10) # Sleeps for 10 sec
-        goal = franka_gripper.msg.MoveGoal(width=unit, speed=1.0)
+        goal = franka_gripper.msg.MoveGoal(width=unit, speed=2.0)
         
         # Sends the goal to the action server.
         print("sending goal")
@@ -157,10 +158,6 @@ class MovePanda:
         # Waits for the server to finish performing the action.
         print("wait for result")
         self.client_gripper.wait_for_result()
-
-        # Prints out the result of executing the action
-        result = self.client_gripper.get_result()
-        self.robot_result(result)
 
 
     def robot_init(self):
@@ -186,9 +183,8 @@ class MovePanda:
         self.move_pose(pose)
         print("moved to top position")
         # !!!!first movement not working because of IK (robotics toolbox calculations doesn't match gazebo coordinate system I think?)
-        return
         
-        self.move_gripper(0.08)
+        self.move_gripper(0.04)
         # MOVING TO A POSITION FOR PICKING UP THE PIECE
         self.get_joint_pose()
         # edit 0.8 to find the correct position
@@ -277,7 +273,7 @@ def listener():
 if __name__ == '__main__':
     rospy.init_node('motion_controller', log_level=rospy.INFO, anonymous=True, disable_signals=True)
     panda.robot_init()
-    move_coord = [(-0.148572, -0.17441600000000002, 0.439), (0.15142800000000003, 0.12558400000000003, 0.439)]
+    move_coord = [(0.675, -0.175, 0.021), (0.675, -0.175, 0.021)]
     #listener()
     control(move_coord)
 
