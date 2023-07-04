@@ -12,11 +12,11 @@ roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka
 
 - Gets stuck after checkmate. The is_checkmate() condition doesn't work.
 
-- motion_controller for gazebo: pick and place not working correctly yet because after IK calculations the joint positions do not match coordinates in gazebo 
+- motion_controller for gazebo: pick and place working but robot makes unnecessary movements.
 
 - Capturing and recovering pieces not fully implemented yet!
 
-- Sending 2 moves for the robot for castling and capturing pieces not implemented yet because robot can't make 1 pick and place move correctly
+- Sending 2 moves for the robot for castling and capturing pieces not implemented yet
 
 
 # franka_gazebo
