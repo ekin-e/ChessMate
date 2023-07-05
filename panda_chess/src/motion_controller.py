@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-import franka_gripper.msg
+from franka_gripper.msg import GraspActionGoal, GraspGoal, GraspAction, MoveGoal, MoveAction, StopActionGoal, StopAction
 from std_msgs.msg import String
 import json
 import numpy as np
@@ -139,7 +139,7 @@ class MovePanda:
 
     def move_gripper(self, unit):
         # Creates the SimpleActionClient, passing the type of the action
-        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/move', franka_gripper.msg.MoveAction)
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/move', MoveAction)
 
         # Waits until the action server has started up and started
         # listening for goals.
@@ -148,8 +148,7 @@ class MovePanda:
 
         # Creates a goal to send to the action server.
         print("creating goal")
-        rospy.sleep(10) # Sleeps for 10 sec
-        goal = franka_gripper.msg.MoveGoal(width=unit, speed=2.0)
+        goal = MoveGoal(width=unit, speed=2.0)
         
         # Sends the goal to the action server.
         print("sending goal")
@@ -158,6 +157,64 @@ class MovePanda:
         # Waits for the server to finish performing the action.
         print("wait for result")
         self.client_gripper.wait_for_result()
+
+        # Get the result
+        result = self.client_gripper.get_result()
+        print("Result:", result)
+    
+    def grasp(self, width, speed):
+        # Create the SimpleActionClient, passing the type of the action
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/grasp', GraspAction)
+
+        # Wait until the action server has started up and started listening for goals.
+        print("Waiting for server")
+        self.client_gripper.wait_for_server()
+
+        # Create a goal to send to the action server.
+        goal = GraspGoal()
+        goal.width = width
+        goal.speed = speed
+        goal.force = 5.0
+
+        # Create the action goal message
+        action_goal = GraspActionGoal()
+        action_goal.goal = goal
+        
+        # Sends the goal to the action server.
+        print("sending goal")
+        self.client_gripper.send_goal(goal)
+
+        # Waits for the server to finish performing the action.
+        print("wait for result")
+        self.client_gripper.wait_for_result()
+
+        # Get the result
+        result = self.client_gripper.get_result()
+        print("Result:", result)
+    
+    def stop_gripper(self):
+        # Creates the SimpleActionClient, passing the type of the action
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/stop', StopAction)
+
+        # Waits until the action server has started up and started
+        # listening for goals.
+        print("waiting for server")
+        self.client_gripper.wait_for_server()
+
+        # Creates a goal to send to the action server.
+        goal = StopActionGoal()
+        
+        # Sends the goal to the action server.
+        print("sending goal")
+        self.client_gripper.send_goal(goal)
+
+        # Waits for the server to finish performing the action.
+        print("wait for result")
+        self.client_gripper.wait_for_result()
+
+        # Get the result
+        result = self.client_gripper.get_result()
+        print("Result:", result)
 
 
     def robot_init(self):
@@ -173,6 +230,7 @@ class MovePanda:
         self.get_joint_pose()
         if (self.current_pose != self.init_pose):
             self.move_pose(self.init_pose)
+            self.move_gripper(0.03)
         top_pos = list(self.start_pos)
 
         # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
@@ -182,9 +240,7 @@ class MovePanda:
         # move to position
         self.move_pose(pose)
         print("moved to top position")
-        # !!!!first movement not working because of IK (robotics toolbox calculations doesn't match gazebo coordinate system I think?)
         
-        self.move_gripper(0.04)
         # MOVING TO A POSITION FOR PICKING UP THE PIECE
         self.get_joint_pose()
         # edit 0.8 to find the correct position
@@ -194,7 +250,7 @@ class MovePanda:
         self.move_pose(pose)
 
         # CLOSE THE GRIPPER
-        self.move_gripper(self.piece_width)
+        self.grasp(self.piece_width, 0.1)
 
         # MOVING TO A POSITION WITH THE PIECE (HIGHER)
         self.get_joint_pose()
@@ -208,29 +264,29 @@ class MovePanda:
     def drop_piece(self):
         print("dropping the piece")
         self.get_joint_pose()
-        top_pos = self.end_pos.copy()
+        top_pos = list(self.goal_pos)
 
-        # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
-        top_pos[2] = self.end_pos[2] + self.piece_height * 4
-        # calculate IK
-        pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
-        # move to position
-        self.move_pose(pose)
+        # # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
+        # top_pos[2] = self.goal_pos[2] + self.piece_height * 4
+        # # calculate IK
+        # pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
+        # # move to position
+        # self.move_pose(pose)
 
-        # MOVING TO A POSITION FOR PICKING UP THE PIECE
+        # MOVING TO A POSITION FOR DROPPING THE PIECE
         self.get_joint_pose()
         # edit 0.8 to find the correct position
-        top_pos[2] = self.end_pos[2] + self.piece_height * 0.8
+        top_pos[2] = self.goal_pos[2] + self.piece_height * 0.8
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
         self.move_pose(pose)
 
-        # OPEN THE GRIPPER
-        self.move_gripper(0.08)
+        # DROP PIECE
+        self.stop_gripper()
 
         # MOVING TO A POSITION WITHOUT THE PIECE (HIGHER)
         self.get_joint_pose()
-        top_pos[2] = self.end_pos[2] + self.piece_height * 4
+        top_pos[2] = self.goal_pos[2] + self.piece_height * 4
         # calculate IK
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
@@ -240,7 +296,6 @@ class MovePanda:
     def pick_and_place(self):
         # implement lowering the arm as well as closing the gripper in this function
         self.pick_piece()
-        return
         # implement moving the arm up as well as opening the gripper in this function
         self.drop_piece()
         self.move_pose(self.init_pose)
