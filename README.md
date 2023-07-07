@@ -6,6 +6,8 @@ roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka
 
 
 # Current errors
+- It automatically assumes that the player is playing the white pieces and robot is playing the black pieces.
+
 - It doesn't send robot's first move to motion_controller. Sends rest of the moves correctly.
 
 - I get 2 prompts when I first start turn_controller for the first player move, then it goes back to normal. Doesn't affect the game just need to enter the first move twice
