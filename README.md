@@ -16,13 +16,25 @@ roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka
 - motion_controller for the real robot hasn't been tested yet
 - motion_controller needs to send a message to board_sensor indicating that the move is done (V1)
 
+# V2 TODO
+- SETTING UP THE BOARD AND SENDING IT TO GAME CONTROLLER
+  - Need to detect the board square length
+  - Need to detect the center coordinates of the board
+  - Need to detect the pieces (and it's width and height)
+  - Need to detect in which square each of the pieces are --> we can infer the  square coordinates after finding out the square len and center
+  - Need to detect who is playing with white and who is playing with black
+
+- DURING THE GAME
+  - Need to find a way to detect the player move and send it to game controller in the format a1a2
+  - Need to find a way to signal that the player move is over and change turns accordingly
+  - tracking
 
 # franka_gazebo
 
 Replace the original franka_gazebo with the one provided here. (Added models for chessboard, pieces etc)
 
 
-# packages needed
+# Needed packages
 - libfranka
 - franka_ros
 - stockfish
