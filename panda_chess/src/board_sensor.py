@@ -6,7 +6,7 @@ import json
 
 
 ########## CHESS BOARD ########## 
-global chess_table, side_len, center_x, center_y, center_z, min_x, max_x, min_y, max_y
+global chess_table, side_len, center_x, center_y, center_z, min_y, min_x
 
 # chess board dimensions and center coordinates
 side_len = 0.4 / 8
@@ -15,7 +15,7 @@ center_y = 0.0
 center_z = 0.021
 
 # Calculate the minimum and maximum coordinates for the chessboard
-min_x = center_x - (3.5 * side_len)
+min_x = center_x + (3.5 * side_len)
 min_y = center_y - (3.5 * side_len)
 
 chess_table = {
@@ -89,7 +89,7 @@ chess_table = {
 for key, value in chess_table.items():
     col = ord(key[0]) - ord('a')
     row = int(key[1]) - 1
-    x = min_x + (row * side_len)
+    x = min_x - (row * side_len)
     y = min_y + (col * side_len)
     z = center_z
     value[1] = (round(x,3), round(y,3), round(z,3))
@@ -101,7 +101,7 @@ for key, value in chess_table.items():
     <pose>{round(x,3)+0.01} {round(y,3)} {round(z,3)} 0 0 0</pose>\n\
 </include>\n"
         # UNCOMMENT THIS LINE TO PRINT THE CHESS PIECE COORDINATES
-        #print(line)
+        # print(line)
 
 ########## CAPTURE SPOTS FOR WHITE PIECES ########## 
 capture_table_white = {
@@ -240,7 +240,7 @@ def listener():
     rospy.spin()
 
 
-########## MAIN ########## 
+########## MAIN ##########
 if __name__ == "__main__":
     try:
         send_chess_table()
