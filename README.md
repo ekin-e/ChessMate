@@ -30,4 +30,4 @@ Replace the original franka_gazebo with the one provided here. (Added models for
 - roboticstoolbox-python
 
 # test
-![alt text](https://github.com/ekin-e/ChessMate/blob/ChessMate.jpg?raw=true)
+![alt text](https://github.com/ekin-e/ChessMate/blob/ChessMateV1.png?raw=true)
