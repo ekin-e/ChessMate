@@ -18,7 +18,7 @@ from spatialmath import SE3
 class MovePanda:
     def __init__(self, piece_height, piece_width):
         self.robot = rtb.models.Panda()
-        # Define the z-offset value
+        # # Define the z-offset value
         z_offset = 0.32
         # Get the transformation matrix of the base frame
         T_base = np.array(self.robot.base)
@@ -40,11 +40,13 @@ class MovePanda:
     def set_pos(self, pos):
         self.start_pos = pos[0]
         self.goal_pos = pos[1]
-        print(self.start_pos)
 
     def print_pose(self, pose):
+        j = 1
         for i in pose:
-            print(round(i, 4))
+            print("Joint " + str(j) + ": " + str(round(i, 4)))
+            j+=1
+
 
     def get_joint_pose(self):
         topic = "/effort_joint_trajectory_controller/state"
@@ -61,7 +63,7 @@ class MovePanda:
 
     def calculate_IK_pose(self, x, y, z):
         # Define the desired orientation as a rotation matrix
-        R = SE3.Ry(180, unit='deg')
+        R = SE3.Rx(180, unit='deg')
         # translate to this position
         Tep = SE3.Tx(x) @ SE3.Ty(y) @ SE3.Tz(z) @ R
         # solve IK
@@ -70,6 +72,7 @@ class MovePanda:
         joint_positions = sol[0]
 
         pose = joint_positions.copy()
+        # pose[6] += 3.14
         return pose
 
 
@@ -106,15 +109,10 @@ class MovePanda:
 
 
     def move_pose(self, pose):
-        # max_movement = max(abs(pose[joint] - self.init_pose[joint]) for joint in pose)
-        # max_movement = max(abs(pose[i] - self.init_pose[self.robot.arm_joint_names[i]]) for i in range(len(pose)))
         # /effort_joint_trajectory_controller/follow_joint_trajectory/goal ---> might need to use this topic we'll see
 
         point = JointTrajectoryPoint()
         point.time_from_start = rospy.Duration.from_sec(
-            # Use either the time to move the furthest joint with 'max_dq' or 500ms,
-            # whatever is greater
-            # max(max_movement / rospy.get_param('~max_dq', 0.5), 0.5)
             2.0
         )
         goal = FollowJointTrajectoryGoal()
@@ -143,6 +141,8 @@ class MovePanda:
 
         # Waits until the action server has started up and started
         # listening for goals.
+        print("GRIPPER MOVEMENT")
+
         print("waiting for server")
         self.client_gripper.wait_for_server()
 
@@ -160,8 +160,9 @@ class MovePanda:
 
         # Get the result
         result = self.client_gripper.get_result()
-        print("Result:", result)
+        print("Gripper movement result:", result)
     
+
     def grasp(self, width, speed):
         # Create the SimpleActionClient, passing the type of the action
         self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/grasp', GraspAction)
@@ -190,7 +191,7 @@ class MovePanda:
 
         # Get the result
         result = self.client_gripper.get_result()
-        print("Result:", result)
+        print("Gripper grasping result:", result)
     
     def stop_gripper(self):
         # Creates the SimpleActionClient, passing the type of the action
@@ -214,7 +215,7 @@ class MovePanda:
 
         # Get the result
         result = self.client_gripper.get_result()
-        print("Result:", result)
+        print("Gripper stopping result:", result)
 
 
     def robot_init(self):
@@ -231,6 +232,7 @@ class MovePanda:
         if (self.current_pose != self.init_pose):
             self.move_pose(self.init_pose)
             self.move_gripper(0.03)
+        
         top_pos = list(self.start_pos)
 
         # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
@@ -248,8 +250,9 @@ class MovePanda:
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
         self.move_pose(pose)
-
+        
         # CLOSE THE GRIPPER
+        # self.move_gripper(0.01)
         self.grasp(self.piece_width, 0.1)
 
         # MOVING TO A POSITION WITH THE PIECE (HIGHER)
@@ -265,13 +268,6 @@ class MovePanda:
         print("dropping the piece")
         self.get_joint_pose()
         top_pos = list(self.goal_pos)
-
-        # # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
-        # top_pos[2] = self.goal_pos[2] + self.piece_height * 4
-        # # calculate IK
-        # pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
-        # # move to position
-        # self.move_pose(pose)
 
         # MOVING TO A POSITION FOR DROPPING THE PIECE
         self.get_joint_pose()
@@ -328,7 +324,7 @@ def listener():
 if __name__ == '__main__':
     rospy.init_node('motion_controller', log_level=rospy.INFO, anonymous=True, disable_signals=True)
     panda.robot_init()
-    move_coord = [(0.675, -0.175, 0.021), (0.675, -0.175, 0.021)]
+    move_coord = [(0.675, -0.176, 0.021), (0.675, -0.175, 0.021)]
     #listener()
     control(move_coord)
 
