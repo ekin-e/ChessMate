@@ -29,5 +29,5 @@ Replace the original franka_gazebo with the one provided here. (Added models for
 - python-chess
 - roboticstoolbox-python
 
-# test
+# UML
 ![UML](ChessMateV1.png)
