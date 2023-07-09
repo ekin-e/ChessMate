@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 import sys
-import franka_gripper.msg
+from franka_gripper.msg import GraspActionGoal, GraspGoal, GraspAction, MoveGoal, MoveAction, StopActionGoal, StopAction
 from std_msgs.msg import String
 import json
 import numpy as np
@@ -18,13 +18,22 @@ from spatialmath import SE3
 class MovePanda:
     def __init__(self, piece_height, piece_width):
         self.robot = rtb.models.Panda()
+        # # Define the z-offset value
+        z_offset = 0.32
+        # Get the transformation matrix of the base frame
+        T_base = np.array(self.robot.base)
+        # Apply the z-offset to the translation component of the transformation matrix
+        T_base[2, 3] += z_offset
+        # Update the transformation matrix of the base frame
+        self.robot.base = T_base
+
         self.start_pos = None
         self.goal_pos = None
         self.piece_height = piece_height
         self.piece_width = piece_width
         self.client = None
         self.client_gripper = None
-        self.init_pose = None
+        self.init_pose = (-0.0001460298397581994, -0.7856265484913365, 3.848215033386282e-05, -2.3559752525418283, 1.4089042781328942e-05, 1.5717536590604224, 0.7853856431923942)
         self.current_pose = None
 
 
@@ -32,13 +41,18 @@ class MovePanda:
         self.start_pos = pos[0]
         self.goal_pos = pos[1]
 
+    def print_pose(self, pose):
+        j = 1
+        for i in pose:
+            print("Joint " + str(j) + ": " + str(round(i, 4)))
+            j+=1
 
-    def get_robot_init_pose(self):
-        topic = rospy.resolve_name('~joint_states')
-        rospy.loginfo("move_to_start: Waiting for message on topic '" + topic + "'")
-        joint_state = rospy.wait_for_message(topic, JointState)
-        self.init_pose = dict(zip(joint_state.name, joint_state.position))
-        print(self.init_pose)
+
+    # def get_robot_init_pose(self):
+    #     topic = rospy.resolve_name('~joint_states')
+    #     joint_state = rospy.wait_for_message(topic, JointState)
+    #     self.init_pose = dict(zip(joint_state.name, joint_state.position))
+    #     print(self.init_pose)
 
 
     def get_joint_pose(self):
@@ -49,23 +63,21 @@ class MovePanda:
             sys.exit(1)
         
         self.current_pose = pose
-        ####TODO############
-        # convert pose to sol type
         self.robot.q = pose
 
 
     def calculate_IK_pose(self, x, y, z):
-        # example coordinates
-        x = 0.6
-        y = 0.3
-        z = 0.2
+        # Define the desired orientation as a rotation matrix
+        R = SE3.Rx(180, unit='deg')
         # translate to this position
-        Tep = SE3.Trans(x, y, z)
+        Tep = SE3.Tx(x) @ SE3.Ty(y) @ SE3.Tz(z) @ R
         # solve IK
         sol = self.robot.ik_LM(Tep)
-        ####TODO############
         # convert sol to franka_ros joint pose
-        pose = None
+        joint_positions = sol[0]
+
+        pose = joint_positions.copy()
+        # pose[6] += 3.14
         return pose
 
 
@@ -118,26 +130,32 @@ class MovePanda:
         goal.trajectory.points.append(point)
         goal.goal_time_tolerance = rospy.Duration.from_sec(0.5)
 
+        print("CURRENT POSE")
+        self.print_pose(self.current_pose)
+
         rospy.loginfo('Sending trajectory Goal to move into initial config')
         self.client.send_goal_and_wait(goal)
 
         result = self.client.get_result()
+        print("TARGET POSE")
+        self.print_pose(pose)
         self.robot_result(result)
 
 
     def move_gripper(self, unit):
         # Creates the SimpleActionClient, passing the type of the action
-        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/move', franka_gripper.msg.MoveAction)
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/move', MoveAction)
 
         # Waits until the action server has started up and started
         # listening for goals.
+        print("GRIPPER MOVEMENT")
+
         print("waiting for server")
         self.client_gripper.wait_for_server()
 
         # Creates a goal to send to the action server.
         print("creating goal")
-        rospy.sleep(10) # Sleeps for 10 sec
-        goal = franka_gripper.msg.MoveGoal(width=unit, speed=1.0, force=5.0)
+        goal = MoveGoal(width=unit, speed=2.0)
         
         # Sends the goal to the action server.
         print("sending goal")
@@ -147,9 +165,65 @@ class MovePanda:
         print("wait for result")
         self.client_gripper.wait_for_result()
 
-        # Prints out the result of executing the action
+        # Get the result
         result = self.client_gripper.get_result()
-        self.robot_result(result)
+        print("Gripper movement result:", result)
+
+    
+    def grasp(self, width, speed):
+        # Create the SimpleActionClient, passing the type of the action
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/grasp', GraspAction)
+
+        # Wait until the action server has started up and started listening for goals.
+        print("Waiting for server")
+        self.client_gripper.wait_for_server()
+
+        # Create a goal to send to the action server.
+        goal = GraspGoal()
+        goal.width = width
+        goal.speed = speed
+        goal.force = 5.0
+
+        # Create the action goal message
+        action_goal = GraspActionGoal()
+        action_goal.goal = goal
+        
+        # Sends the goal to the action server.
+        print("sending goal")
+        self.client_gripper.send_goal(goal)
+
+        # Waits for the server to finish performing the action.
+        print("wait for result")
+        self.client_gripper.wait_for_result()
+
+        # Get the result
+        result = self.client_gripper.get_result()
+        print("Gripper grasping result:", result)
+    
+
+    def stop_gripper(self):
+        # Creates the SimpleActionClient, passing the type of the action
+        self.client_gripper = actionlib.SimpleActionClient('/franka_gripper/stop', StopAction)
+
+        # Waits until the action server has started up and started
+        # listening for goals.
+        print("waiting for server")
+        self.client_gripper.wait_for_server()
+
+        # Creates a goal to send to the action server.
+        goal = StopActionGoal()
+        
+        # Sends the goal to the action server.
+        print("sending goal")
+        self.client_gripper.send_goal(goal)
+
+        # Waits for the server to finish performing the action.
+        print("wait for result")
+        self.client_gripper.wait_for_result()
+
+        # Get the result
+        result = self.client_gripper.get_result()
+        print("Gripper stopping result:", result)
 
 
     def robot_init(self):
@@ -158,40 +232,41 @@ class MovePanda:
         self.client = actionlib.SimpleActionClient(action, FollowJointTrajectoryAction)
         rospy.loginfo("move_to_start: Waiting for '" + action + "' action to come up")
         self.client.wait_for_server()
-
-        pose = self.get_joint_pose()
-        self.get_robot_init_pose()
+        self.get_joint_pose()
 
 
     def pick_piece(self):
         print("picking up the piece")
         self.get_joint_pose()
         if (self.current_pose != self.init_pose):
-            self.move_init()
-        top_pos = self.start_pos.copy()
+            self.move_pose(self.init_pose)
+            self.move_gripper(0.03)
+        
+        top_pos = list(self.start_pos)
 
         # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
-        top_pos[2] = self.start_pos[2] - self.piece_height * 3
+        top_pos[2] = self.start_pos[2] + self.piece_height * 4
         # calculate IK
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
         self.move_pose(pose)
-
-        self.move_gripper(0.08)
+        print("moved to top position")
+        
         # MOVING TO A POSITION FOR PICKING UP THE PIECE
         self.get_joint_pose()
         # edit 0.8 to find the correct position
-        top_pos[2] = self.start_pos[2] - self.piece_height * 0.8
+        top_pos[2] = self.start_pos[2] + self.piece_height * 0.8
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
         self.move_pose(pose)
-
+        
         # CLOSE THE GRIPPER
-        self.move_gripper(self.piece_width)
+        # self.move_gripper(0.01)
+        self.grasp(self.piece_width, 0.1)
 
         # MOVING TO A POSITION WITH THE PIECE (HIGHER)
         self.get_joint_pose()
-        top_pos[2] = self.start_pos[2] + self.piece_height * 3
+        top_pos[2] = self.start_pos[2] + self.piece_height * 4
         # calculate IK
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
@@ -201,29 +276,22 @@ class MovePanda:
     def drop_piece(self):
         print("dropping the piece")
         self.get_joint_pose()
-        top_pos = self.end_pos.copy()
+        top_pos = list(self.goal_pos)
 
-        # MOVING TO A POSITION ALIGNED WITH THE PIECE (HIGHER)
-        top_pos[2] = self.end_pos[2] - self.piece_height * 3
-        # calculate IK
-        pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
-        # move to position
-        self.move_pose(pose)
-
-        # MOVING TO A POSITION FOR PICKING UP THE PIECE
+        # MOVING TO A POSITION FOR DROPPING THE PIECE
         self.get_joint_pose()
         # edit 0.8 to find the correct position
-        top_pos[2] = self.end_pos[2] - self.piece_height * 0.8
+        top_pos[2] = self.goal_pos[2] + self.piece_height * 0.8
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
         self.move_pose(pose)
 
-        # OPEN THE GRIPPER
-        self.move_gripper(0.08)
+        # DROP PIECE
+        self.stop_gripper()
 
         # MOVING TO A POSITION WITHOUT THE PIECE (HIGHER)
         self.get_joint_pose()
-        top_pos[2] = self.end_pos[2] + self.piece_height * 3
+        top_pos[2] = self.goal_pos[2] + self.piece_height * 4
         # calculate IK
         pose = self.calculate_IK_pose(top_pos[0], top_pos[1], top_pos[2])
         # move to position
@@ -247,34 +315,33 @@ def control(data):
     move_coord = data
     panda.set_pos(move_coord)    
     panda.pick_and_place()
-    
-
-# def pick_and_drop_piece(data):
-#     move_coord = json.loads(data.data)
-#     print("Robot moving with move coordinates:")
-#     print(move_coord)
 
 
 def listener():
     rospy.init_node('motion_controller', log_level=rospy.INFO, anonymous=True, disable_signals=True)
-    # rospy.Subscriber("game_controller/move", String, pick_and_drop_piece)
-    # rospy.spin()
+    rospy.Subscriber("game_controller/move", String, control)
+    rospy.spin()
 
 
 if __name__ == '__main__':
-    #listener()
     rospy.init_node('motion_controller', log_level=rospy.INFO, anonymous=True, disable_signals=True)
     panda.robot_init()
-    move_coord = [(-0.148572, -0.17441600000000002, 0.439), (0.15142800000000003, 0.12558400000000003, 0.439)]
+    move_coord = [(0.675, -0.176, 0.021), (0.675, -0.175, 0.021)]
+    # listener()
     control(move_coord)
 
 
 
 
+
 # LOOK AT:
-# roslaunch franka_gazebo panda.launch x:=-0.5 world:=$(rospack find franka_gazebo)/world/stone.sdf controller:=effort_joint_trajectory_controller
+# roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka_gazebo)/world/stone.sdf controller:=effort_joint_trajectory_controller
 # /effort_joint_trajectory_controller/follow_joint_trajectory/command
 # /effort_joint_trajectory_controller/follow_joint_trajectory/feedback
 # /effort_joint_trajectory_controller/follow_joint_trajectory/goal
 # /effort_joint_trajectory_controller/follow_joint_trajectory/result
 # /effort_joint_trajectory_controller/follow_joint_trajectory/status
+
+
+# launching the real robot
+# roslaunch franka_example_controllers motion_controller.launch robot_ip:=172.16.1.101 load_gripper:=true
