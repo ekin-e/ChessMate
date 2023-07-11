@@ -174,6 +174,8 @@ class MovePanda:
         # Create a goal to send to the action server.
         goal = GraspGoal()
         goal.width = width
+        goal.epsilon.inner = 0.005
+        goal.epsilon.outer = 0.005
         goal.speed = speed
         goal.force = 5.0
 
@@ -278,7 +280,7 @@ class MovePanda:
         self.move_pose(pose)
 
         # DROP PIECE
-        self.stop_gripper()
+        self.move_gripper(0.03)
 
         # MOVING TO A POSITION WITHOUT THE PIECE (HIGHER)
         self.get_joint_pose()
