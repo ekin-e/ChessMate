@@ -1,5 +1,11 @@
 # ChessMate
 
+# Control with Movit
+`roslaunch panda_moveit_config demo_gazebo.launch`
+
+
+
+
 # Launch gazebo with example controller
 
 roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka_gazebo)/world/stone.sdf controller:=effort_joint_trajectory_controller
