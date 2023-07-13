@@ -1,7 +1,24 @@
 # ChessMate
 
-# Control with Movit
+# Control with Moveit in Gazebo
+> These commands may be vary depend on your system!
 `roslaunch panda_moveit_config demo_gazebo.launch`
+
+# Realtime Control with Moveit 
+
+cd ~/franka_ros2
+source devel/setup.bash
+roslaunch franka_control franka_control.launch robot_ip:=10.0.0.2
+
+cd ~/panda_chessmate/FrankaRos
+source devel/setup.bash
+roslaunch panda_movit_config move_group.launch arm_id:=panda load_gripper:=true
+
+rviz
+Add > moveit_ros_visualization > MotionPlanning
+
+
+
 
 
 
