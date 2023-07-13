@@ -1,7 +1,7 @@
 # ChessMate
 
-# Control with Moveit in Gazebo
 > These commands may be vary depend on your system!
+# Control with Moveit in Gazebo
 `roslaunch panda_moveit_config demo_gazebo.launch`
 
 # Realtime Control with Moveit 
@@ -16,9 +16,6 @@ roslaunch panda_movit_config move_group.launch arm_id:=panda load_gripper:=true
 
 rviz
 Add > moveit_ros_visualization > MotionPlanning
-
-
-
 
 
 
