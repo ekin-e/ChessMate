@@ -7,8 +7,8 @@
 # Realtime Control with Moveit 
 
 cd ~/franka_ros2
-source devel/setup.bash
-roslaunch franka_control franka_control.launch robot_ip:=10.0.0.2
+ -source devel/setup.bash
+  -roslaunch franka_control franka_control.launch robot_ip:=10.0.0.2
 
 cd ~/panda_chessmate/FrankaRos
 source devel/setup.bash
