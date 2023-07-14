@@ -43,22 +43,28 @@ print ("Generating plan 1")
 group.set_planner_id("RRTstar") # planner seçimi
 pose_target = geometry_msgs.msg.Pose()
 pose_target.orientation = group.get_current_pose().pose.orientation
-pose_target.position.x = 0.5
-pose_target.position.y = 0.07
-pose_target.position.z = 0.3
+pose_target.position.x = 0.5154
+pose_target.position.y = -0.07274
+pose_target.position.z = 0.1680178409655524
 
+init_pose = (0.20569760583994678, -0.46903115825910924, -0.21801485168053691, -2.3468741699571547, -0.10967289843824174, 1.904154620806376, 0.8666427851311035)
+group.go(init_pose, wait = True)
 
 group.set_pose_target(pose_target)
 plan_success, plan1, planning_time, error_code = group.plan()
-group.execute(plan1)
-
-rospy.sleep(1)
-
 
 display_trajectory = moveit_msgs.msg.DisplayTrajectory()
 display_trajectory.trajectory_start = robot.get_current_state()
 display_trajectory.trajectory.append(plan1)
 display_trajectory_publisher.publish(display_trajectory)
+
+
+
+
+rospy.sleep(2)
+
+#group.execute(plan1)
+
 
 
 
