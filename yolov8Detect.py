@@ -1,12 +1,13 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')
+model = YOLO('last.pt')
 names = model.names
 
 video_path = "path/to/your/video/file.mp4"
  
-cap = cv2.VideoCapture(0)     # 0 yerine istediğin kaynağı yaz
+cap = cv2.VideoCapture(6)     # 0  = bilgisayarın webcami
+                              # 6 = realsense'in kamerası (kamerayı takmayı unutma :D)
 
 while cap.isOpened():
     success, frame = cap.read()
@@ -29,8 +30,13 @@ while cap.isOpened():
                 color = (0, 255, 0) 
                 thickness = 2
                 cv2.rectangle(frame, top_left, bottom_right, color, thickness)
+
                 
-                print("width: ", round(int(a[3]),2)-round(int(a[1]),2))
+                # bounding boxun merkezi
+                center_x = (top_left[0] + bottom_right[0]) // 2
+                center_y = (top_left[1] + bottom_right[1]) // 2
+         
+                cv2.circle(frame, (center_x, center_y), 5, (255, 0, 0), -1)
 
             
                 text = f"x1, y1: ({round(int(a[0]),2)}, {round(int(a[1]),2)})"
@@ -38,6 +44,8 @@ while cap.isOpened():
 
                 text = f"x2, y2 ({round(int(a[2]),2)}, {round(int(a[3]),2)})"
                 cv2.putText(frame, text, (bottom_right[0], bottom_right[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0) , thickness, cv2.LINE_AA)
+
+                
 
         cv2.imshow("YOLOv8 Inference", frame)
 
