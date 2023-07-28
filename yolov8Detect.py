@@ -1,58 +1,83 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO('last.pt')
-names = model.names
 
-video_path = "path/to/your/video/file.mp4"
- 
-cap = cv2.VideoCapture(6)     # 0  = bilgisayarın webcami
-                              # 6 = realsense'in kamerası (kamerayı takmayı unutma :D)
+def main():
 
-while cap.isOpened():
-    success, frame = cap.read()
+    detectedList = []
+    detectedList.clear()
 
-    if success:
-        results = model(frame)
+    model = YOLO('temmuz27.pt')
+    names = model.names
+    
+    
 
-        for r in results:
-            for c in r.boxes.cls:
-                print(names[int(c)])
-
-            for box_info in r.boxes:
-                a = box_info.xyxy[0].tolist()
-                print("Top-left corner:", round(int(a[0]),2), round(int(a[1]),2))
-                print("Bottom-right corner:", round(int(a[2]),2), round(int(a[3]),2))
+    cap = cv2.VideoCapture(6)   # 0 yerine istediğin kaynağı yaz
 
 
-                top_left = round(int(a[0]),2), round(int(a[1]),2)
-                bottom_right = round(int(a[2]),2), round(int(a[3]),2)
-                color = (0, 255, 0) 
-                thickness = 2
-                cv2.rectangle(frame, top_left, bottom_right, color, thickness)
+    while cap.isOpened():
+        success, frame = cap.read()
 
+        if success:
+            results = model(frame, conf=0.7)  
+            annotated_frame = results[0].plot()
+
+            for r in results:
                 
-                # bounding boxun merkezi
-                center_x = (top_left[0] + bottom_right[0]) // 2
-                center_y = (top_left[1] + bottom_right[1]) // 2
-         
-                cv2.circle(frame, (center_x, center_y), 5, (255, 0, 0), -1)
-
             
-                text = f"x1, y1: ({round(int(a[0]),2)}, {round(int(a[1]),2)})"
-                cv2.putText(frame, text, (top_left[0], top_left[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0) , thickness, cv2.LINE_AA)
+                for box_info in range(len(r.boxes)):
+                    a = r.boxes[box_info].xyxy[0].tolist()
 
-                text = f"x2, y2 ({round(int(a[2]),2)}, {round(int(a[3]),2)})"
-                cv2.putText(frame, text, (bottom_right[0], bottom_right[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0) , thickness, cv2.LINE_AA)
+                    top_left = round(int(a[0]),2), round(int(a[1]),2)
+                    bottom_right = round(int(a[2]),2), round(int(a[3]),2)
+                    color = (0, 255, 0) 
+                    thickness = 2
+                    cv2.rectangle(frame, top_left, bottom_right, color, thickness)
 
-                
+                    # bounding boxun merkezi
+                    center_x = (top_left[0] + bottom_right[0]) // 2
+                    center_y = (top_left[1] + bottom_right[1]) // 2
 
-        cv2.imshow("YOLOv8 Inference", frame)
+                    heightOfPiece = bottom_right[1] - top_left[1]
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+
+                    # Kameranın konumuna göre 80 sayısı değşecek
+                    if heightOfPiece < 37:
+                        cv2.circle(frame, (center_x, center_y+5), 5, (255, 0, 0), -1)
+                    elif heightOfPiece > 37:
+                        cv2.circle(frame, (center_x, center_y+12), 5, (255, 0, 0), -1)
+
+                    #print(heightOfPiece)
+
+                   #### NOTTTTT
+                   # Taşların yerinin değiştiğini algılaman lazım  (son konum - ilk konum)
+
+                    try:
+                        class_name = names[int(r.boxes.cls[box_info])]
+                        print(class_name, " height: ", heightOfPiece, "center: ", center_x, ",", center_y)
+                    except:
+                        print("bekleniyor")
+
+                    if class_name not in detectedList:
+                        detectedList.append(class_name)
+
+                    #print(detectedList)
+                    
+
+            cv2.namedWindow("Center Points",cv2.WINDOW_NORMAL)
+            cv2.namedWindow("YOLOv8 Inference",cv2.WINDOW_NORMAL)
+            cv2.imshow("Center Points", frame)
+            cv2.imshow("YOLOv8 Inference", annotated_frame)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
             break
-    else:
-        break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()
+    
