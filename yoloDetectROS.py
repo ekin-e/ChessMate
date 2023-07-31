@@ -3,9 +3,27 @@ from ultralytics import YOLO
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-
+import numpy as np
 
 frame = None
+
+
+def is_point_inside_polygon(point, polygon):
+    x, y = point
+    n = len(polygon)
+    inside = False
+    p1x, p1y = polygon[0]
+    for i in range(n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
 
 def imgCallback(msg):
     global frame
@@ -19,11 +37,21 @@ def main():
 
     detectedList = []
     detectedList.clear()
-    model = YOLO('temmuz27.pt')
+    model = YOLO('temmuz28.pt')
     names = model.names
 
-    
 
+    x0 = 160
+    y0 = 433
+    x1 = 205
+    y1 = 138
+    x2 = 474
+    y2 = 131
+    x3 = 540
+    y3 = 428
+
+    polygon_coords_input = [x0,y0,x1,y1,x2,y2,x3,y3]
+    points = np.array(polygon_coords_input, dtype=np.int32).reshape((-1, 2))
     
 
 
@@ -33,12 +61,15 @@ def main():
             results = model(frame, conf=0.7)  
             annotated_frame = results[0].plot()
 
+            cv2.polylines(frame, [points], isClosed=True, color=(150, 220, 100), thickness=2)
+            mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+            cv2.fillPoly(mask, [points], (255, 255, 255))
+            roi = cv2.bitwise_and(frame, frame, mask=mask)
+
             for r in results:
-                
-            
                 for box_info in range(len(r.boxes)):
                     a = r.boxes[box_info].xyxy[0].tolist()
-
+                    class_name = names[int(r.boxes.cls[box_info])]
                     top_left = round(int(a[0]),2), round(int(a[1]),2)
                     bottom_right = round(int(a[2]),2), round(int(a[3]),2)
                     color = (0, 255, 0) 
@@ -58,23 +89,18 @@ def main():
                     elif heightOfPiece > 37:
                         cv2.circle(frame, (center_x, center_y+12), 5, (255, 0, 0), -1)
 
-                    #print(heightOfPiece)
-
-                   #### NOTTTTT
-                   # Taşların yerinin değiştiğini algılaman lazım  (son konum - ilk konum)
-
-                    try:
-                        class_name = names[int(r.boxes.cls[box_info])]
-                        print(class_name, " height: ", heightOfPiece, "center: ", center_x, ",", center_y)
-                    except:
-                        print("bekleniyor")
 
                     if class_name not in detectedList:
                         detectedList.append(class_name)
 
-                    #print(detectedList)
                     
-
+                    center_point = (center_x, center_y)
+                    if is_point_inside_polygon(center_point, points):
+                        print("Class:", class_name, " is inside the polygon.")
+                    else:
+                        print("Class:", class_name, " is OUTSIDE the polygon.")
+                    
+            cv2.imshow("Selected ROI", roi)
             cv2.namedWindow("Center Points",cv2.WINDOW_NORMAL)
             cv2.namedWindow("YOLOv8 Inference",cv2.WINDOW_NORMAL)
             cv2.imshow("Center Points", frame)
