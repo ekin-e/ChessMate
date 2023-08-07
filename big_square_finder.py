@@ -132,7 +132,7 @@ def main():
         img1 =cv.line(cdst, intersections[0][-1], intersections[-1][-1], (0,255,0), thickness=3) 
 
 
-    cv.imshow("en büyük kare", img1)
+    cv.imshow("en buyuk kare", img1)
     #cv.imwrite("karecikler9.jpg",img)
     cv.waitKey()
    
