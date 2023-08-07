@@ -60,7 +60,7 @@ def main():
     lines = cv.HoughLines(dst, 1, np.pi / 180, 100, None, 0, 0)
 
 
-    print(lines)
+    #print(lines)
     points=[[],[]]
     intersections = []
 
@@ -89,9 +89,6 @@ def main():
             #cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
             #cv.waitKey()
 
-    cv.imshow("en buyuk kare", cdst)
-    #cv.imwrite("karecikler9.jpg",img)
-    cv.waitKey()
 
     #dik ve yatay çizgilerin kesişimini bulan ve gruplayıp intersectionsa yazan kod
     for i in range(0,len(points[0])):
@@ -121,23 +118,25 @@ def main():
 
 
     kare_kenarlar =[]
-    print(intersections)
-    kare_kenarlar.append(intersections[0][-1])
-    kare_kenarlar.append(intersections[-1][-1])
-    kare_kenarlar.append(intersections[-1][0])
-    kare_kenarlar.append(intersections[0][0])
 
-    img1 =cv.line(cdst, intersections[-1][0], intersections[-1][-1], (0,255,0), thickness=3) 
-    img1 =cv.line(cdst, intersections[-1][0], intersections[0][0], (0,255,0), thickness=3) 
-    img1 =cv.line(cdst, intersections[0][-1], intersections[0][0], (0,255,0), thickness=3) 
-    img1 =cv.line(cdst, intersections[0][-1], intersections[-1][-1], (0,255,0), thickness=3) 
+    if intersections[0]:
+
+        kare_kenarlar.append(intersections[0][-1])
+        kare_kenarlar.append(intersections[-1][-1])
+        kare_kenarlar.append(intersections[-1][0])
+        kare_kenarlar.append(intersections[0][0])
+
+        img1 =cv.line(cdst, intersections[-1][0], intersections[-1][-1], (0,255,0), thickness=3) 
+        img1 =cv.line(cdst, intersections[-1][0], intersections[0][0], (0,255,0), thickness=3) 
+        img1 =cv.line(cdst, intersections[0][-1], intersections[0][0], (0,255,0), thickness=3) 
+        img1 =cv.line(cdst, intersections[0][-1], intersections[-1][-1], (0,255,0), thickness=3) 
 
 
     cv.imshow("en büyük kare", img1)
     #cv.imwrite("karecikler9.jpg",img)
     cv.waitKey()
    
-    
+    return kare_kenarlar
     
     
 
