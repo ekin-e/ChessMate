@@ -1,5 +1,14 @@
 # ChessMate
 
+# Usage of ros2depth.py
+terminal 1: 
+``` roslaunch realsense2_camera rs_camera.launch ```
+
+terminal 2: 
+``` rostopic list ``` for checking the connection 
+            and then
+            ```python3 ros2depth.py <x> <y>```
+        
 # Launch gazebo with example controller
 
 roslaunch franka_gazebo panda.launch x:=0 y:=0 z:=0 world:=$(rospack find franka_gazebo)/world/stone.sdf controller:=effort_joint_trajectory_controller
