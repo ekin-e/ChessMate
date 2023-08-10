@@ -1,5 +1,26 @@
 # ChessMate
 
+# Usage of HRI_publisher.py
+For creting bag file: 
+
+terminal 1: 
+``` roscore```
+
+terminal 2: 
+``` rosrun turtlesim turtlesim_node ``` (not for panda)
+
+terminal 3:
+```rosrun turtlesim turtle_teleop_key``` (not for panda)
+
+terminal 4:
+```rosbag record  /turtle1/cmd_vel``` (not for panda)
+
+Playing:
+
+```rosbag play 2023-08-10-10-45-15.bag```
+or
+```python3 HRI_publisher.py```
+            
 # Usage of ros2depth.py
 terminal 1: 
 ``` roslaunch realsense2_camera rs_camera.launch ```
